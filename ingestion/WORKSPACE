@@ -1,0 +1,101 @@
+# Copyright (c) 2018 Google LLC
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+workspace(name = "org_cloudai_api_video")
+
+# =====================================================================
+# Install gFlag.
+http_archive(
+  name   = "com_github_gflags_gflags_path_fix",
+  urls = ["https://github.com/gflags/gflags/archive/v2.2.1.tar.gz"],
+  sha256 = "ae27cdbcd6a2f935baa78e4f21f675649271634c092b1be01469440495609d0e",
+  strip_prefix = "gflags-2.2.1",
+)
+
+bind(
+  name = "gflags",
+  actual = "@com_github_gflags_gflags_path_fix//:gflags",
+)
+
+bind(
+  name = "gflags_nothreads",
+  actual = "@com_github_gflags_gflags_path_fix//:gflags_nothreads",
+)
+
+
+# =====================================================================
+# Install glog
+new_http_archive(
+  name = "com_google_glog",
+  build_file = "glog.BUILD",
+  urls = ["https://github.com/google/glog/archive/v0.3.5.tar.gz"],
+  sha256 = "7580e408a2c0b5a89ca214739978ce6ff480b5e7d8d7698a2aa92fadc484d1e0",
+  strip_prefix = "glog-0.3.5",
+)
+
+bind(
+  name = "glog",
+  actual = "@com_google_glog//:glog",
+)
+
+
+# =====================================================================
+# Install Bazel
+http_archive(
+  name = "io_bazel_rules_closure",
+  urls = [
+    "http://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/4af89ef1db659eb41f110df189b67d4cf14073e1.tar.gz",
+    "https://github.com/bazelbuild/rules_closure/archive/4af89ef1db659eb41f110df189b67d4cf14073e1.tar.gz",  # 2017-08-28
+  ],
+  sha256 = "110fe68753413777944b473c25eed6368c4a0487cee23a7bac1b13cc49d3e257",
+  strip_prefix = "rules_closure-4af89ef1db659eb41f110df189b67d4cf14073e1",
+)
+
+
+# =====================================================================
+# Install gRPC and protobuf
+
+http_archive(
+  name = "org_pubref_rules_protobuf",
+  urls = ["https://github.com/pubref/rules_protobuf/archive/v0.8.2.tar.gz"],
+  sha256 = "012267bf3e2cad7a30d4e56ed4764b5457d7a829c8f037f94507222836e9a7be",
+  strip_prefix = "rules_protobuf-0.8.2",
+)
+
+proto_deps = {
+  "com_google_protobuf": {
+    "rule": "http_archive",
+    "url": "https://github.com/google/protobuf/archive/v3.5.1.zip",
+    "sha256": "1f8b9b202e9a4e467ff0b0f25facb1642727cdf5e69092038f15b37c75b99e45",
+    "strip_prefix": "protobuf-3.5.1",
+  },
+}
+
+# Load the functions and original dependencies.
+load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cpp_proto_repositories")
+load("@org_pubref_rules_protobuf//cpp:deps.bzl", "DEPS")
+
+# Override the dependencies with the tensorflow ones.
+cpp_proto_repositories(lang_deps=dict(DEPS.items() + proto_deps.items()))
+
+# Load the functions and dependencies for Python rules.
+load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_repositories")
+
+# Override to the proto dependencies and suppress cpp use.
+py_proto_repositories(omit_cpp_repositories=True, overrides=proto_deps)

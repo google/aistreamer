@@ -43,6 +43,9 @@ class ProtoProcessor {
   static void ProcessShotChangeDetection(
       const google::cloud::videointelligence::v1::
           StreamingVideoAnnotationResults& res);
+
+  static void ProcessObjectTracking(const google::cloud::videointelligence::v1::
+                                        StreamingVideoAnnotationResults& res);
 };
 
 }  // namespace video

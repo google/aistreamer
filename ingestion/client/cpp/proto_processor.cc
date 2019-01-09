@@ -25,7 +25,11 @@ namespace api {
 namespace video {
 
 namespace {
+using google::cloud::videointelligence::v1::Likelihood;
+using google::cloud::videointelligence::v1::
+    STREAMING_EXPLICIT_CONTENT_DETECTION;
 using google::cloud::videointelligence::v1::STREAMING_LABEL_DETECTION;
+using google::cloud::videointelligence::v1::STREAMING_OBJECT_TRACKING;
 using google::cloud::videointelligence::v1::STREAMING_SHOT_CHANGE_DETECTION;
 using google::cloud::videointelligence::v1::StreamingFeature;
 using google::cloud::videointelligence::v1::StreamingVideoAnnotationResults;
@@ -40,9 +44,26 @@ void ProtoProcessor::Process(const StreamingFeature& feature,
     case STREAMING_SHOT_CHANGE_DETECTION:
       ProcessShotChangeDetection(res);
       break;
+    case STREAMING_EXPLICIT_CONTENT_DETECTION:
+      ProcessExplicitContentDetection(res);
+      break;
+    case STREAMING_OBJECT_TRACKING:
+      ProcessObjectTracking(res);
+      break;
     default:
       LOG(ERROR) << "Unsupported inference feature: " << feature;
       break;
+  }
+}
+
+void ProtoProcessor::ProcessExplicitContentDetection(
+    const StreamingVideoAnnotationResults& res) {
+  for (auto& frame : res.explicit_annotation().frames()) {
+    double time_offset =
+        frame.time_offset().seconds() + frame.time_offset().nanos() / 1e9;
+    LOG(INFO) << time_offset << "s:\t"
+              << "Pornography likelyhood: "
+              << Likelihood_Name(frame.pornography_likelihood());
   }
 }
 
@@ -54,7 +75,8 @@ void ProtoProcessor::ProcessLabelDetection(
     double time_offset = annotation.frames(0).time_offset().seconds() +
                          annotation.frames(0).time_offset().nanos() / 1e9;
     float confidence = annotation.frames(0).confidence();
-    LOG(INFO) << time_offset << "s:\t" << description << "\t" << confidence;
+    LOG(INFO) << time_offset << "s:\t" << description
+        << "\t(" << confidence << ")";
   }
 }
 
@@ -65,7 +87,34 @@ void ProtoProcessor::ProcessShotChangeDetection(
                         annotation.start_time_offset().nanos() / 1e9;
     double end_time = annotation.end_time_offset().seconds() +
                       annotation.end_time_offset().nanos() / 1e9;
-    LOG(INFO) << "Shot: " << start_time << "s\t" << end_time << "s";
+    LOG(INFO) << "Shot: " << start_time << "s to " << end_time << "s";
+  }
+}
+
+void ProtoProcessor::ProcessObjectTracking(
+    const StreamingVideoAnnotationResults& res) {
+  for (auto& annotation : res.object_annotations()) {
+    // In streaming mode, annotation.frames_size() can always be 0 or 1.
+    // When annotation.frames_size() = 0, no tracklet is found.
+    if (annotation.frames_size() > 0) {
+      std::string description = annotation.entity().description();
+      float confidence = annotation.confidence();
+      int64_t track_id = annotation.track_id();
+      double time_offset = annotation.frames(0).time_offset().seconds() +
+                           annotation.frames(0).time_offset().nanos() / 1e9;
+      float left = annotation.frames(0).normalized_bounding_box().left();
+      float right = annotation.frames(0).normalized_bounding_box().right();
+      float top = annotation.frames(0).normalized_bounding_box().top();
+      float bottom = annotation.frames(0).normalized_bounding_box().bottom();
+      LOG(INFO) << "Entity description: " << description;
+      LOG(INFO) << "Track Id: " << track_id;
+      LOG(INFO) << "Entity Id: " << annotation.entity().entity_id();
+      LOG(INFO) << "Confidence: " << confidence;
+      LOG(INFO) << "Time: " << time_offset << "s";
+      LOG(INFO) << "Bounding box position: "
+          << " left : " << left << " top : " << top
+          << " right : " << right << " bottom : " << bottom;
+    }
   }
 }
 

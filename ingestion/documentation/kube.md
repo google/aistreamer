@@ -1,7 +1,7 @@
 AIStreamer Ingestion Library - Docker & Kubernetes
 ===================================
 
-We provide an example of Docker image [env/Dockerfile](../env/Dockerfile) for our customer to evaluate.
+We provide an example of [Docker image](../env/Dockerfile) for our customer to evaluate.
 
 Please note that, use of third-party software is solely at our customers' discretion.
 Google does not own the copyright of third-party software.
@@ -14,7 +14,7 @@ Google does not own the copyright of third-party software.
 
 # Build docker image
 
-Go into [ingestion](../) directory and run the following command line on your host machine:
+Go into [ingestion directory](../) and run the following command line on your host machine:
 
 ```
 $ export DOCKER_IMAGE=gcr.io/gcp-project-name/docker-image-name:version
@@ -42,7 +42,7 @@ Now, you have both host terminals that are in the same docker container.
 
 # Docker image environment setting
 
-Some env variables need to be set in [env/Dockerfile](../env/Dockerfile).
+Some environment variables need to be set in the [Docker image](../env/Dockerfile).
 ```
 #set up environment for Google Video Intelligence Streaming API
 ENV SRC_DIR /googlesrc  #Source code directory

@@ -2,7 +2,7 @@ AIStreamer Ingestion Library - Live Shot Change Detection
 ===================================
 
 [Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/alpha/docs/streaming) supports
-live shot change detection with live/file streaming input of media data, and real-time streaming output of analysis results.
+live shot change detection with streaming input of media data and streaming output of analysis results.
 
 # Feature enum
 

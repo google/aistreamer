@@ -1,8 +1,9 @@
-AIStreamer Ingestion - File Streaming
+AIStreamer Ingestion - File/Data Streaming
 ===================================
 
 [Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/alpha/docs/streaming) allows customers
-to stream a video file to Google Streaming API server and receives analytics results in real time.
+to stream a video file to Google Streaming API server and receives analytics results in real time. It also allows customers to
+divide a video file into multiple data chunks, and stream each data chunk individually.
 
 # Supported video codecs
 
@@ -31,6 +32,8 @@ Command line to run our example Python code:
 $ export GOOGLE_APPLICATION_CREDENTIALS=/path_to_credential/credential_json
 $ ./streaming_label_detection.py $FILE_NAME
 $ ./streaming_shot_detectin.py $FILE_NAME
+$ ./streaming_explicit_content_detection.py $FILE_NAME
+$ ./streaming_object_tracking.py $FILE_NAME
 ```
 
 Here, $GOOGLE_APPLICATION_CREDENTIALS specifies where GCP credential json file is located.
@@ -49,23 +52,23 @@ responses = client.streaming_annotate_video(config_request, requests, timeout=36
 
 # C++ client library
 
-[C++ examples](../client/cpp) are available to our customers. A single binary is implemented to support all features.
+[C++ examples](../client/cpp) are available to our customers. A single binary example [streaming_client_main](../client/cpp/BUILD)
+is provided to support all features. Please follow the build instruction.
 
 Command line to run our example C++ code:
 
 ```
 $ export GOOGLE_APPLICATION_CREDENTIALS=/path_to_credential/credential_json
-$ export FEATURE=1
-$ export FILE_NAME=/path_to_file/file_name
+$ export CONFIG=/path_to_config/config_json
+$ export PIPE_NAME=/path_to_pipe/pipe_name
 $ export TIMEOUT=3600
 $ ./streaming_client_main --alsologtostderr --endpoint "dns:///alpha-videointelligence.googleapis.com" \
-    --video_path $FILE_NAME --feature=$FEATURE --timeout=$TIMEOUT
+      --video_path=$PIPE_NAME --use_pipe=true --config=$CONFIG --timeout=$TIMEOUT
 ```
 
 Here, $GOOGLE_APPLICATION_CREDENTIALS specifies where GCP credential json file is located.
 
-$FEATURE is the enum number of [StreamingFeature](../proto/video_intelligence_streaming.proto). For label detection, $FEATURE is 1,
-for shot change detection, $FEATURE is 2.
+Example config files $CONFIG for each feature can be found [here](../client/cpp/config).
 
 Make sure to set correct timeout flag in the command line. If you need to stream 1 hour of video,
 timeout value should be at least 3600 (unit: seconds).

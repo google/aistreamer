@@ -1,0 +1,8 @@
+{
+	"video_config": {
+		"feature": "STREAMING_LABEL_DETECTION",
+		"label_detection_config": {
+			"stationary_camera": "False"
+		}
+	}
+}

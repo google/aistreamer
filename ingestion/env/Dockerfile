@@ -64,11 +64,13 @@ RUN apt-get update && apt-get install -y \
     libxcb-shm0-dev \
     libxcb-xfixes0-dev \
     make \
+    pkg-config \
     python-dev \
     python-setuptools \
+    unzip \
     wget \
     vim \
-    pkg-config \
+    zip \
     zlib1g-dev \
     && apt-get clean
 
@@ -120,17 +122,15 @@ RUN git clone -b ${PROTO_RELEASE_TAG} https://github.com/google/protobuf.git \
     ./autogen.sh && \
     ./configure && make && make install
 
-#install bazel
-RUN apt-get -y install openjdk-8-jdk && \
-    echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && \
-    curl https://storage.googleapis.com/bazel-apt/doc/apt-key.pub.gpg | apt-key add - && \
-    apt-get update && \
-    apt-get -y install bazel && \
-    apt-get -y upgrade bazel && \
-    apt-get clean
+#install bazel v0.19.2
+ENV BAZEL_RELEASE_TAG 0.19.2
+RUN cd /var/local && \
+    wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_RELEASE_TAG}/bazel-${BAZEL_RELEASE_TAG}-installer-linux-x86_64.sh && \
+    chmod +x bazel-${BAZEL_RELEASE_TAG}-installer-linux-x86_64.sh && \
+    ./bazel-${BAZEL_RELEASE_TAG}-installer-linux-x86_64.sh --prefix=/usr
 
 #install Google Video Intelligence Streaming API Python Libraries
-RUN pip install https://storage.googleapis.com/api-client-staging/videointelligence-python-q3alpha-sep2018.tar.gz
+RUN pip install https://storage.googleapis.com/api-client-staging/videointelligence-python-q4alpha-dec2018.tar.gz
 
 #set up environment for Google Video Intelligence Streaming API
 ENV SRC_DIR /googlesrc

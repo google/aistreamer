@@ -67,6 +67,7 @@ class StreamingClient {
       google::cloud::videointelligence::v1::StreamingAnnotateVideoRequest,
       google::cloud::videointelligence::v1::StreamingAnnotateVideoResponse>>
       stream_;
+  google::cloud::videointelligence::v1::StreamingFeature feature_;
 };
 
 }  // namespace video

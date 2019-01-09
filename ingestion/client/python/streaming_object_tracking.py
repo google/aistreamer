@@ -19,24 +19,29 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Streaming label detection sample.
+"""Streaming object tracking annotation sample.
 
-This application demonstrates how to perform streaming label detection with the
+This application demonstrates how to perform streaming object trcaking with the
 Google Cloud Video Intelligence API.
 
 For more information, check out the documentation at
 https://cloud.google.com/video-intelligence/docs.
 
 Usage Example:
-    $ python streaming_sample.py file_path.mp4
+    $ python streaming_object_tracking.py file_path.mp4
 
 Sample Output:
     Reading response.
-    0.0s: mustang horse  (0.9374721646308899)
-    0.0s: herd           (0.9230296611785889)
-    0.0s: horse          (0.9789802432060242)
-    ...
-
+    Entity description: mirror
+    Track Id: 12
+    Entity id: /m/054_l
+    Confidence: 0.936193287373
+    Time: 7.5075s
+    Bounding box position:
+            left  : 0.0509275756776
+            top   : 0.748813211918
+            right : 0.218115285039
+            bottom: 0.979368686676
 """
 
 import argparse
@@ -59,6 +64,7 @@ def streaming_annotate(stream_file):
   """Annotate a local video file through streaming API."""
 
   client = videointelligence.StreamingVideoIntelligenceServiceClient()
+
   # Set the chunk size to 5MB (recommended less than 10MB).
   chunk_size = 5 * 1024 * 1024
 
@@ -68,34 +74,50 @@ def streaming_annotate(stream_file):
       types.StreamingAnnotateVideoRequest(input_content=chunk)
       for chunk in stream(video_file, chunk_size))
 
-    # Set streaming config with stationary_camera option.
-    # stationary_camera flag can be set to False (default option) or True.
-    label_config = types.StreamingLabelDetectionConfig(stationary_camera=False)
-    config = types.StreamingVideoConfig(
-        feature=enums.StreamingFeature.STREAMING_LABEL_DETECTION,
-        label_detection_config=label_config)
-    config_request = types.StreamingAnnotateVideoRequest(video_config=config)
+  # Set streaming config.
+  config = types.StreamingVideoConfig(
+      feature=enums.StreamingFeature.STREAMING_OBJECT_TRACKING)
+  config_request = types.StreamingAnnotateVideoRequest(video_config=config)
+  # streaming_annotate_video returns a generator.
+  # timeout argument specifies the maximum allowable time duration between
+  # the time that the last packet is sent to Google video intelligence API
+  # and the time that an annotation result is returned from the API.
+  # timeout argument is represented in number of seconds.
+  responses = client.streaming_annotate_video(
+      config_request, requests, timeout=10800)
 
-    # streaming_annotate_video returns a generator.
-    # timeout argument specifies the maximum allowable time duration between
-    # the time that the last packet is sent to Google video intelligence API
-    # and the time that an annotation result is returned from the API.
-    # timeout argument is represented in number of seconds.
-    responses = client.streaming_annotate_video(
-        config_request, requests, timeout=10800)
+  print '\nReading response.'
+  # Retrieve results from the response generator.
+  for response in responses:
+    object_annotations = response.annotation_results.object_annotations
 
-    print '\nReading response.'
-    # Retrieve results from the response generator.
-    for response in responses:
-      for annotation in response.annotation_results.label_annotations:
+    # When object_annotations is empty, no object is found.
+    if object_annotations:
+      for annotation in object_annotations:
         description = annotation.entity.description
-        # The response of steaming_annotate_video has only one frame for each
-        # annotation.
-        time_offset = annotation.frames[0].time_offset.seconds + \
-                      annotation.frames[0].time_offset.nanos / 1e9
-        confidence = annotation.frames[0].confidence
-        print '{}s: {}\t ({})'.format(
-            time_offset, description.encode('utf-8').strip(), confidence)
+        confidence = annotation.confidence
+        track_id = annotation.track_id
+
+        print 'Entity description: {}'.format(description)
+        print 'Track Id: {}'.format(track_id)
+        if annotation.entity.entity_id:
+          print 'Entity id: {}'.format(annotation.entity.entity_id)
+
+        print 'Confidence: {}'.format(confidence)
+
+        # In streaming mode, len(annotation.frames) is always 1, and the frames
+        # in the same response share the same time_offset.
+        frame = annotation.frames[0]
+        box = frame.normalized_bounding_box
+        print('Time: {}s'.format(
+            frame.time_offset.seconds + frame.time_offset.nanos / 1e9))
+        print 'Bounding box position:'
+        print '\tleft  : {}'.format(box.left)
+        print '\ttop   : {}'.format(box.top)
+        print '\tright : {}'.format(box.right)
+        print '\tbottom: {}'.format(box.bottom)
+        print '\n'
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(

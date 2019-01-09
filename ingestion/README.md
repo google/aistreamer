@@ -7,6 +7,10 @@ AIStreamer Ingestion Library
 
 2. Live Shot Change Detection
 
+3. Live Explicit Content Detection
+
+4. Live Object Tracking
+
 AIStreamer ingestion library provides a set of open source interface and example code to connect to Google Cloud Video Intelligence Streaming API. The library supports:
 
 1. File Streaming
@@ -21,10 +25,13 @@ AIStreamer ingestion library provides a set of open source interface and example
 
 AIStreamer ingestion library provides a Docker example. Please refer to individual documentation:
 
-* [Live Streaming](documentation/live.md): Instruction of supporting live streaming protocols (HLS, RTSP and RTMP) in Google Cloud Video Intelligence.
+* [Live Streaming](documentation/live.md): Instruction for supporting live streaming protocols (HLS, RTSP and RTMP) in Google Cloud Video Intelligence.
+* [File/Data Streaming](documentation/file.md): Instruction for support file/data streaming in Google Cloud Video Intelligence.
 * [Docker & K8s](documentation/kube.md): Instruction of using our docker example and kubernetes deployment.
-* [Live Label Detection](documentation/label.md): Instruction for streaming label analysis.
-* [Live Shot Change Detection](documentation/shot.md): Instruction for streaming shot change analysis.
+* [Live Label Detection](documentation/label.md): Instruction for streaming label detection.
+* [Live Shot Change Detection](documentation/shot.md): Instruction for streaming shot change detection.
+* [Live Explicit Content Detection](documentation/explicit.md): Instruction for streaming explicit content detection.
+* [Live Object Tracking](documentation/object.md): Instruction for streaming object tracking.
 
 # Code architecture
 
@@ -61,12 +68,17 @@ enum StreamingFeature {
   STREAMING_LABEL_DETECTION = 1;
   // Shot change detection.
   STREAMING_SHOT_CHANGE_DETECTION = 2;
+  // Explicit content detection.
+  STREAMING_EXPLICIT_CONTENT_DETECTION = 3;
+  // Object tracking.
+  STREAMING_OBJECT_TRACKING = 4;
 }
 ```
 
 
 AIStreamer ingestion client sends [StreamingAnnotateVideoRequest](../proto/video_intelligence_streaming.proto) to Google Cloud Video Intelligence Streaming API servers.
-The first StreamingAnnotateVideoRequest message must only contain StreamingVideoConfig, and cannot include input_content.
+The first StreamingAnnotateVideoRequest message must only contain StreamingVideoConfig, and cannot include input_content. There is an option to store live annotation
+results to customer specified GCS bucket. By default, this storage option is disabled.
 
 ```c++
 // The top-level message sent by the client for the `StreamingAnnotateVideo`
@@ -85,11 +97,8 @@ message StreamingAnnotateVideoRequest {
     // The video data to be annotated. Chunks of video data are sequentially
     // sent in `StreamingAnnotateVideoRequest` messages. Except the initial
     // `StreamingAnnotateVideoRequest` message containing only
-    // `video_context`, all subsequent `AnnotateStreamingVideoRequest`
-    // messages must only contain `data` field. The video bytes must be
-    // encoded as specified in `StreamingVideoConfig`.
-    // Note: as with all bytes fields, protobuffers use a pure binary
-    // representation (not base64).
+    // `video_config`, all subsequent `AnnotateStreamingVideoRequest`
+    // messages must only contain `input_content` field.
     bytes input_content = 2;
   }
 }
@@ -107,7 +116,35 @@ message StreamingVideoConfig {
 
     // Config for LABEL_DETECTION.
     StreamingLabelDetectionConfig label_detection_config = 3;
+
+    // Config for STREAMING_EXPLICIT_CONTENT_DETECTION.
+    StreamingExplicitContentDetectionConfig explicit_content_detection_config =
+      4;
+
+    // Config for STREAMING_OBJECT_TRACKING.
+    StreamingObjectTrackingConfig object_tracking_config = 5;
   }
+
+  // Streaming storage option. By default: storage is disabled.
+  StreamingStorageConfig storage_config = 30;
+}
+
+// Config for streaming storage option.
+message StreamingStorageConfig {
+  // Enable streaming storage. Default: false.
+  bool enable_storage_annotation_result = 1;
+
+  // GCS URI to store all annotation results for one client. Client should
+  // specify this field as the top-level storage directory. Annotation results
+  // of different sessions will be put into different sub-directories denoted
+  // by project_name and session_id. All sub-directories will be auto generated
+  // by program and will be made accessible to client in response proto.
+  // URIs must be specified in the following format: `gs://bucket-id/object-id`
+  // `bucket-id` should be a valid GCS bucket created by client and bucket
+  // permission shall also be configured properly. `object-id` can be arbitrary
+  // string that make sense to client. Other URI formats will return error and
+  // cause GCS write failure.
+  string annotation_result_storage_directory = 3;
 }
 ```
 
@@ -135,8 +172,11 @@ message StreamingVideoAnnotationResults {
   // Label annotation results.
   repeated LabelAnnotation label_annotations = 2;
 
-  // Abuse detection results.
+  // Explicit content detection results.
   ExplicitContentAnnotation explicit_annotation = 3;
+
+  // Object tracking results.
+  repeated ObjectTrackingAnnotation object_annotations = 4;
 }
 ```
 

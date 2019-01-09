@@ -19,24 +19,25 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Streaming label detection sample.
+"""Streaming explicit content annotation sample.
 
-This application demonstrates how to perform streaming label detection with the
-Google Cloud Video Intelligence API.
+This application demonstrates how to perform streaming explicit content
+detection with the Google Cloud Video Intelligence API.
 
 For more information, check out the documentation at
 https://cloud.google.com/video-intelligence/docs.
 
 Usage Example:
-    $ python streaming_sample.py file_path.mp4
+$ python streaming_explicit_content_detection.py file_path.mp4
 
 Sample Output:
     Reading response.
-    0.0s: mustang horse  (0.9374721646308899)
-    0.0s: herd           (0.9230296611785889)
-    0.0s: horse          (0.9789802432060242)
-    ...
-
+    Time: 0.168794s
+        pornography: VERY_UNLIKELY
+    Time: 1.069627s
+        pornography: VERY_UNLIKELY
+    Time: 2.116857s
+        pornography: VERY_UNLIKELY
 """
 
 import argparse
@@ -59,23 +60,20 @@ def streaming_annotate(stream_file):
   """Annotate a local video file through streaming API."""
 
   client = videointelligence.StreamingVideoIntelligenceServiceClient()
+
   # Set the chunk size to 5MB (recommended less than 10MB).
   chunk_size = 5 * 1024 * 1024
 
   # Open file.
   with open(stream_file) as video_file:
     requests = (
-      types.StreamingAnnotateVideoRequest(input_content=chunk)
-      for chunk in stream(video_file, chunk_size))
+        types.StreamingAnnotateVideoRequest(input_content=chunk)
+        for chunk in stream(video_file, chunk_size))
 
-    # Set streaming config with stationary_camera option.
-    # stationary_camera flag can be set to False (default option) or True.
-    label_config = types.StreamingLabelDetectionConfig(stationary_camera=False)
+    # Set streaming config.
     config = types.StreamingVideoConfig(
-        feature=enums.StreamingFeature.STREAMING_LABEL_DETECTION,
-        label_detection_config=label_config)
+        feature=enums.StreamingFeature.STREAMING_EXPLICIT_CONTENT_DETECTION)
     config_request = types.StreamingAnnotateVideoRequest(video_config=config)
-
     # streaming_annotate_video returns a generator.
     # timeout argument specifies the maximum allowable time duration between
     # the time that the last packet is sent to Google video intelligence API
@@ -87,15 +85,12 @@ def streaming_annotate(stream_file):
     print '\nReading response.'
     # Retrieve results from the response generator.
     for response in responses:
-      for annotation in response.annotation_results.label_annotations:
-        description = annotation.entity.description
-        # The response of steaming_annotate_video has only one frame for each
-        # annotation.
-        time_offset = annotation.frames[0].time_offset.seconds + \
-                      annotation.frames[0].time_offset.nanos / 1e9
-        confidence = annotation.frames[0].confidence
-        print '{}s: {}\t ({})'.format(
-            time_offset, description.encode('utf-8').strip(), confidence)
+      for frame in response.annotation_results.explicit_annotation.frames:
+        likelihood = enums.Likelihood(frame.pornography_likelihood)
+        frame_time = frame.time_offset.seconds + frame.time_offset.nanos / 1e9
+        print 'Time: {}s'.format(frame_time)
+        print '\tpornography: {}'.format(likelihood.name)
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(

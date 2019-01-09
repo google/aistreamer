@@ -19,24 +19,23 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Streaming label detection sample.
+"""Streaming Storage sample.
 
-This application demonstrates how to perform streaming label detection with the
-Google Cloud Video Intelligence API.
+This application demonstrates how to enable streaming annotation result storage
+in GCS with the Google Cloud Video Intelligence API.
 
 For more information, check out the documentation at
 https://cloud.google.com/video-intelligence/docs.
 
 Usage Example:
-    $ python streaming_sample.py file_path.mp4
+    $ python streaming_sample.py file_path.mp4 gs://bucket-id/object-id/
 
 Sample Output:
     Reading response.
-    0.0s: mustang horse  (0.9374721646308899)
-    0.0s: herd           (0.9230296611785889)
-    0.0s: horse          (0.9789802432060242)
-    ...
+    Storage uri: gs://foo/bar/project-id/5c1b1ed6-0000-210c-ade5-089e082c1b6c
 
+After processing, annotation results will be available under the provided gcs
+bucket.
 """
 
 import argparse
@@ -55,7 +54,7 @@ def stream(file_object, chunk_size):
     yield data
 
 
-def streaming_annotate(stream_file):
+def streaming_annotate(stream_file, output_uri):
   """Annotate a local video file through streaming API."""
 
   client = videointelligence.StreamingVideoIntelligenceServiceClient()
@@ -68,12 +67,17 @@ def streaming_annotate(stream_file):
       types.StreamingAnnotateVideoRequest(input_content=chunk)
       for chunk in stream(video_file, chunk_size))
 
-    # Set streaming config with stationary_camera option.
-    # stationary_camera flag can be set to False (default option) or True.
-    label_config = types.StreamingLabelDetectionConfig(stationary_camera=False)
+    # Use storage config option in the config request to enable storage.
+    storage_config = types.StreamingStorageConfig(
+        enable_storage_annotation_result=True,
+        annotation_result_storage_directory=output_uri)
+    # LABEL_DETECTION feature is used as an example. Storage works for all
+    # supported features.
+    label_config = types.StreamingLabelDetectionConfig()
     config = types.StreamingVideoConfig(
         feature=enums.StreamingFeature.STREAMING_LABEL_DETECTION,
-        label_detection_config=label_config)
+        label_detection_config=label_config,
+        storage_config=storage_config)
     config_request = types.StreamingAnnotateVideoRequest(video_config=config)
 
     # streaming_annotate_video returns a generator.
@@ -87,21 +91,18 @@ def streaming_annotate(stream_file):
     print '\nReading response.'
     # Retrieve results from the response generator.
     for response in responses:
-      for annotation in response.annotation_results.label_annotations:
-        description = annotation.entity.description
-        # The response of steaming_annotate_video has only one frame for each
-        # annotation.
-        time_offset = annotation.frames[0].time_offset.seconds + \
-                      annotation.frames[0].time_offset.nanos / 1e9
-        confidence = annotation.frames[0].confidence
-        print '{}s: {}\t ({})'.format(
-            time_offset, description.encode('utf-8').strip(), confidence)
+      print 'Storage uri: {}'.format(response.annotation_results_uri)
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
       description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument(
       'file_path', help='Local file location for streaming video annotation.')
+  parser.add_argument(
+      'output_uri',
+      help='Storage uri (gs://bucket-id/object-id) to store annotation results.'
+  )
   args = parser.parse_args()
 
-  streaming_annotate(args.file_path)
+  streaming_annotate(args.file_path, args.output_uri)

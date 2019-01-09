@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <fstream>
+#include <google/protobuf/util/json_util.h>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -46,21 +47,20 @@ using google::cloud::videointelligence::v1::StreamingAnnotateVideoResponse;
 using google::cloud::videointelligence::v1::StreamingFeature;
 using google::cloud::videointelligence::v1::StreamingVideoConfig;
 using google::cloud::videointelligence::v1::StreamingVideoIntelligenceService;
+using google::protobuf::util::JsonStringToMessage;
 using grpc::ClientContext;
 using grpc::ClientReaderWriter;
 }  // namespace
 
+DEFINE_string(config, "", "Config request JSON file.");
 DEFINE_string(endpoint, "dns:///alpha-videointelligence.googleapis.com",
-    "API endpoint to connect to.");
-DEFINE_int32(feature, STREAMING_SHOT_CHANGE_DETECTION,
-    "Streaming Feature. Default: shot change detection.");
-DEFINE_string(video_path, "", "Input video path.");
-DEFINE_string(enable_cache, "", "Cached video path.");
-DEFINE_string(proto_path, "", "Output video path.");
+              "API endpoint to connect to.");
+DEFINE_string(local_storage_annotation_result, "",
+              "Local Storage: annotation result path.");
+DEFINE_string(local_storage_video, "", "Local Storage: video path.");
 DEFINE_int32(timeout, 10800, "GRPC deadline (default: 3 hours).");
-DEFINE_bool(stationary_camera, false,
-    "Whether it is stationary camera user case.");
 DEFINE_bool(use_pipe, false, "Whether reading from a pipe.");
+DEFINE_string(video_path, "", "Input video path.");
 
 // Maximum data chunks read: 1 MByte.
 constexpr int kDataChunk = 1 * 1024 * 1024;
@@ -111,41 +111,41 @@ bool StreamingClient::Run() {
 void StreamingClient::ReadResponse() {
   StreamingAnnotateVideoResponse resp;
   int total_responses_received = 0;
-  
-  bool enable_proto_writer = (FLAGS_proto_path != "");
+  bool enable_local_storage_annotation_result =
+      (FLAGS_local_storage_annotation_result != "");
   std::unique_ptr<ProtoWriter> writer;
-  if (enable_proto_writer) {
-    writer.reset(new ProtoWriter(FLAGS_proto_path));
-    CHECK(writer->Open()) << "Failed to write to " << FLAGS_proto_path;
+  if (enable_local_storage_annotation_result) {
+    writer.reset(new ProtoWriter(FLAGS_local_storage_annotation_result));
+    CHECK(writer->Open()) << "Failed to write to "
+        << FLAGS_local_storage_annotation_result;
   }
 
   while (stream_->Read(&resp)) {
     total_responses_received++;
-    ProtoProcessor::Process(static_cast<StreamingFeature>(FLAGS_feature),
-                            resp.annotation_results());
+    ProtoProcessor::Process(feature_, resp.annotation_results());
     if (resp.has_error()) {
       LOG(ERROR) << "Received an error: " << resp.error().message();
-    } else if (enable_proto_writer) {
+    } else if (enable_local_storage_annotation_result) {
       writer->WriteProto(resp.annotation_results());
-    } 
+    }
   }
   LOG(INFO) << "Received " << total_responses_received << " responses.";
-  if (enable_proto_writer) {
+  if (enable_local_storage_annotation_result) {
     writer->Close();
   }
 }
 
 bool StreamingClient::SendConfig() {
+  std::ifstream input(FLAGS_config);
+  std::stringstream config_req_json;
+  while(input >> config_req_json.rdbuf());
+
   // All the config details must be sent in the first request.
-  StreamingAnnotateVideoRequest req;
-  StreamingVideoConfig* config = req.mutable_video_config();
-  config->set_feature(static_cast<StreamingFeature>(FLAGS_feature));
-  if (config->feature() == STREAMING_LABEL_DETECTION) {
-    config->mutable_label_detection_config()->set_stationary_camera(
-        FLAGS_stationary_camera);
-  }
-  if (!stream_->Write(req)) {
-    LOG(ERROR) << "Failed to send config: " << req.ShortDebugString();
+  StreamingAnnotateVideoRequest config_req;
+  JsonStringToMessage(config_req_json.str(), &config_req);
+  feature_ = config_req.video_config().feature();
+  if (!stream_->Write(config_req)) {
+    LOG(ERROR) << "Failed to send config: " << config_req.ShortDebugString();
     return false;
   }
   return true;
@@ -163,10 +163,10 @@ bool StreamingClient::SendContent() {
   CHECK(reader->Open()) << "Failed to read from " << FLAGS_video_path;
 
   std::unique_ptr<IOWriter> writer;
-  bool enable_cache = (FLAGS_enable_cache != "");
-  if (enable_cache) {
-    writer.reset(new FileWriter(FLAGS_enable_cache));
-    CHECK(writer->Open()) << "Failed to write to " << FLAGS_enable_cache;
+  bool enable_local_storage_video = (FLAGS_local_storage_video != "");
+  if (enable_local_storage_video) {
+    writer.reset(new FileWriter(FLAGS_local_storage_video));
+    CHECK(writer->Open()) << "Failed to write to " << FLAGS_local_storage_video;
   }
 
   int requests_sent = 0;
@@ -185,7 +185,7 @@ bool StreamingClient::SendContent() {
       status = false;
       break;
     }
-    if (enable_cache) {
+    if (enable_local_storage_video) {
       writer->WriteBytes(num_bytes_read, buffer.data());
     }
     total_bytes_read += num_bytes_read;
@@ -198,7 +198,7 @@ bool StreamingClient::SendContent() {
   }
 
   reader->Close();
-  if (enable_cache) {
+  if (enable_local_storage_video) {
     writer->Close();
   }
 

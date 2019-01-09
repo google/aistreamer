@@ -66,33 +66,33 @@ def streaming_annotate(stream_file):
   chunk_size = 5 * 1024 * 1024
 
   # Open file.
-  video_file = open(stream_file)
-  requests = (
-    types.StreamingAnnotateVideoRequest(input_content=chunk)
-    for chunk in stream(video_file, chunk_size))
+  with open(stream_file) as video_file:
+    requests = (
+      types.StreamingAnnotateVideoRequest(input_content=chunk)
+      for chunk in stream(video_file, chunk_size))
 
-  # Set streaming config.
-  config = types.StreamingVideoConfig(
-      feature=enums.StreamingFeature.STREAMING_SHOT_CHANGE_DETECTION)
-  config_request = types.StreamingAnnotateVideoRequest(video_config=config)
+    # Set streaming config.
+    config = types.StreamingVideoConfig(
+        feature=enums.StreamingFeature.STREAMING_SHOT_CHANGE_DETECTION)
+    config_request = types.StreamingAnnotateVideoRequest(video_config=config)
 
-  # streaming_annotate_video returns a generator.
-  # timeout argument specifies the maximum allowable time duration between
-  # the time that the last packet is sent to Google video intelligence API
-  # and the time that an annotation result is returned from the API.
-  # timeout argument is represented in number of seconds.
-  responses = client.streaming_annotate_video(
-      config_request, requests, timeout=10800)
+    # streaming_annotate_video returns a generator.
+    # timeout argument specifies the maximum allowable time duration between
+    # the time that the last packet is sent to Google video intelligence API
+    # and the time that an annotation result is returned from the API.
+    # timeout argument is represented in number of seconds.
+    responses = client.streaming_annotate_video(
+        config_request, requests, timeout=10800)
 
-  print '\nReading response.'
-  # Retrieve results from the response generator.
-  for response in responses:
-    for annotation in response.annotation_results.shot_annotations:
-      print 'Shot: {}s to {}s'.format(
-          annotation.start_time_offset.seconds +
-          annotation.start_time_offset.nanos / 1e9,
-          annotation.end_time_offset.seconds +
-          annotation.end_time_offset.nanos / 1e9)
+    print '\nReading response.'
+    # Retrieve results from the response generator.
+    for response in responses:
+      for annotation in response.annotation_results.shot_annotations:
+        print 'Shot: {}s to {}s'.format(
+            annotation.start_time_offset.seconds +
+            annotation.start_time_offset.nanos / 1e9,
+            annotation.end_time_offset.seconds +
+            annotation.end_time_offset.nanos / 1e9)
 
 
 if __name__ == '__main__':

@@ -24,6 +24,22 @@ import "google/protobuf/duration.proto";
 
 package google.cloud.videointelligence.v1;
 
+// Bucketized representation of likelihood.
+enum Likelihood {
+  // Unspecified likelihood.
+  LIKELIHOOD_UNSPECIFIED = 0;
+  // Very unlikely.
+  VERY_UNLIKELY = 1;
+  // Unlikely.
+  UNLIKELY = 2;
+  // Possible.
+  POSSIBLE = 3;
+  // Likely.
+  LIKELY = 4;
+  // Very likely.
+  VERY_LIKELY = 5;
+}
+
 // Streaming video annotation feature.
 enum StreamingFeature {
   // Unspecified.
@@ -32,6 +48,10 @@ enum StreamingFeature {
   STREAMING_LABEL_DETECTION = 1;
   // Shot change detection.
   STREAMING_SHOT_CHANGE_DETECTION = 2;
+  // Explicit content detection.
+  STREAMING_EXPLICIT_CONTENT_DETECTION = 3;
+  // Object detection and tracking.
+  STREAMING_OBJECT_TRACKING = 4;
 }
 
 // Detected entity from video analysis.
@@ -46,6 +66,24 @@ message Entity {
 
   // Language code for `description` in BCP-47 format.
   string language_code = 3;
+}
+
+// Video frame level annotation results for explicit content.
+message ExplicitContentFrame {
+  // Time-offset, relative to the beginning of the video, corresponding to the
+  // video frame for this location.
+  google.protobuf.Duration time_offset = 1;
+
+  // Likelihood of the pornography content..
+  Likelihood pornography_likelihood = 2;
+}
+
+// Explicit content annotation (based on per-frame visual signals only).
+// If no explicit content has been detected in a frame, no annotations are
+// present for that frame.
+message ExplicitContentAnnotation {
+  // All video frames where explicit content was detected.
+  repeated ExplicitContentFrame frames = 1;
 }
 
 // Label annotation.
@@ -86,6 +124,60 @@ message LabelSegment {
   float confidence = 2;
 }
 
+// Normalized bounding box.
+// The normalized vertex coordinates are relative to the original image.
+// Range: [0, 1].
+message NormalizedBoundingBox {
+  // Left X coordinate.
+  float left = 1;
+  // Top Y coordinate.
+  float top = 2;
+  // Right X coordinate.
+  float right = 3;
+  // Bottom Y coordinate.
+  float bottom = 4;
+}
+
+// Video frame level annotations for object detection and tracking. This field
+// stores per frame location, time offset, and confidence.
+message ObjectTrackingFrame {
+  // The normalized bounding box location of this object track for the frame.
+  NormalizedBoundingBox normalized_bounding_box = 1;
+
+  // The timestamp of the frame in microseconds.
+  google.protobuf.Duration time_offset = 2;
+}
+
+// Annotations corresponding to one tracked object.
+message ObjectTrackingAnnotation {
+  // Entity to specify the object category that this track is labeled as.
+  Entity entity = 1;
+
+  // Object category's labeling confidence of this track.
+  float confidence = 4;
+
+  // Information corresponding to all frames where this object track appears.
+  // Non-streaming batch mode: it may be one or multiple ObjectTrackingFrame
+  // messages in frames.
+  // Streaming mode: it can only be one ObjectTrackingFrame message in frames.
+  repeated ObjectTrackingFrame frames = 2;
+
+  // Different representation of tracking info in non-streaming batch
+  // and streaming modes.
+  oneof track_info {
+    // Non-streaming batch mode ONLY.
+    // Each object track corresponds to one video segment where it appears.
+    VideoSegment segment = 3;
+    // Streaming mode ONLY.
+    // In streaming mode, we do not know the end time of a tracked object
+    // before it is completed. Hence, there is no VideoSegment info returned.
+    // Instead, we provide a unique identifiable integer track_id so that
+    // the customers can correlate the results of the ongoing
+    // ObjectTrackAnnotation of the same track_id over time.
+    int64 track_id = 5;
+  }
+}
+
 // The top-level message sent by the client for the `StreamingAnnotateVideo`
 // method. Multiple `StreamingAnnotateVideoRequest` messages are sent.
 // The first message must only contain a `StreamingVideoConfig` message.
@@ -102,11 +194,8 @@ message StreamingAnnotateVideoRequest {
     // The video data to be annotated. Chunks of video data are sequentially
     // sent in `StreamingAnnotateVideoRequest` messages. Except the initial
     // `StreamingAnnotateVideoRequest` message containing only
-    // `video_context`, all subsequent `AnnotateStreamingVideoRequest`
-    // messages must only contain `data` field. The video bytes must be
-    // encoded as specified in `StreamingVideoConfig`.
-    // Note: as with all bytes fields, protobuffers use a pure binary
-    // representation (not base64).
+    // `video_config`, all subsequent `AnnotateStreamingVideoRequest`
+    // messages must only contain `input_content` field.
     bytes input_content = 2;
   }
 }
@@ -121,6 +210,17 @@ message StreamingAnnotateVideoResponse {
 
   // Streaming annotation results.
   StreamingVideoAnnotationResults annotation_results = 2;
+
+  // GCS URI that stores annotation results of one streaming session.
+  // It is a directory that can hold multiple files in JSON format.
+  // Example uri format:
+  // gs://bucket_id/object_id/cloud_project_name-session_id
+  string annotation_results_uri = 3;
+}
+
+// Config for EXPLICIT_CONTENT_DETECTION in streaming mode.
+message StreamingExplicitContentDetectionConfig {
+  // No customized config support.
 }
 
 // Config for LABEL_DETECTION in streaming mode.
@@ -136,6 +236,29 @@ message StreamingShotChangeDetectionConfig {
   // No customized config support.
 }
 
+// Config for STREAMING_OBJECT_TRACKING.
+message StreamingObjectTrackingConfig {
+  // No customized config support.
+}
+
+// Config for streaming storage option.
+message StreamingStorageConfig {
+  // Enable streaming storage. Default: false.
+  bool enable_storage_annotation_result = 1;
+
+  // GCS URI to store all annotation results for one client. Client should
+  // specify this field as the top-level storage directory. Annotation results
+  // of different sessions will be put into different sub-directories denoted
+  // by project_name and session_id. All sub-directories will be auto generated
+  // by program and will be made accessible to client in response proto.
+  // URIs must be specified in the following format: `gs://bucket-id/object-id`
+  // `bucket-id` should be a valid GCS bucket created by client and bucket
+  // permission shall also be configured properly. `object-id` can be arbitrary
+  // string that make sense to client. Other URI formats will return error and
+  // cause GCS write failure.
+  string annotation_result_storage_directory = 3;
+}
+
 // Streaming annotation results corresponding to a portion of the video
 // that is currently being processed.
 message StreamingVideoAnnotationResults {
@@ -144,6 +267,12 @@ message StreamingVideoAnnotationResults {
 
   // Label annotation results.
   repeated LabelAnnotation label_annotations = 2;
+
+  // Explicit content detection results.
+  ExplicitContentAnnotation explicit_annotation = 3;
+
+  // Object tracking results.
+  repeated ObjectTrackingAnnotation object_annotations = 4;
 }
 
 // Provides information to the annotator that specifies how to process the
@@ -159,7 +288,17 @@ message StreamingVideoConfig {
 
     // Config for LABEL_DETECTION.
     StreamingLabelDetectionConfig label_detection_config = 3;
+
+    // Config for STREAMING_EXPLICIT_CONTENT_DETECTION.
+    StreamingExplicitContentDetectionConfig explicit_content_detection_config =
+      4;
+
+    // Config for STREAMING_OBJECT_TRACKING.
+    StreamingObjectTrackingConfig object_tracking_config = 5;
   }
+
+  // Streaming storage option. By default: storage is disabled.
+  StreamingStorageConfig storage_config = 30;
 }
 
 // Video segment.

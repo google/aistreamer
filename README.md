@@ -22,6 +22,8 @@ AIStreamer is still an [Alpha feature](https://cloud.google.com/video-intelligen
 
 [![Join the chat at https://gitter.im/aistreamer/aistreamer](https://badges.gitter.im/aistreamer/aistreamer.svg)](https://gitter.im/aistreamer/aistreamer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+Contact us: <input type="email" name="aistreamer@googlegroups.com">
+
 # To start using AIStreamer
 
 For instructions on how to use different media processing and streaming features,

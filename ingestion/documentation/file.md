@@ -60,10 +60,10 @@ Command line to run our example C++ code:
 ```
 $ export GOOGLE_APPLICATION_CREDENTIALS=/path_to_credential/credential_json
 $ export CONFIG=/path_to_config/config_json
-$ export PIPE_NAME=/path_to_pipe/pipe_name
+$ export FILE_NAME=/path_to_file/file_name
 $ export TIMEOUT=3600
 $ ./streaming_client_main --alsologtostderr --endpoint "dns:///alpha-videointelligence.googleapis.com" \
-      --video_path=$PIPE_NAME --use_pipe=true --config=$CONFIG --timeout=$TIMEOUT
+      --video_path=$FILE_NAME --config=$CONFIG --timeout=$TIMEOUT
 ```
 
 Here, $GOOGLE_APPLICATION_CREDENTIALS specifies where GCP credential json file is located.

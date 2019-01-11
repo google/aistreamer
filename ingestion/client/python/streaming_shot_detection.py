@@ -41,6 +41,7 @@ Sample Output:
     Shot: 24.624624s to 30.063396s
 
 """
+from __future__ import print_function
 
 import argparse
 
@@ -84,15 +85,15 @@ def streaming_annotate(stream_file):
     responses = client.streaming_annotate_video(
         config_request, requests, timeout=10800)
 
-    print '\nReading response.'
+    print('\nReading response.')
     # Retrieve results from the response generator.
     for response in responses:
       for annotation in response.annotation_results.shot_annotations:
-        print 'Shot: {}s to {}s'.format(
+        print('Shot: {}s to {}s'.format(
             annotation.start_time_offset.seconds +
             annotation.start_time_offset.nanos / 1e9,
             annotation.end_time_offset.seconds +
-            annotation.end_time_offset.nanos / 1e9)
+            annotation.end_time_offset.nanos / 1e9))
 
 
 if __name__ == '__main__':

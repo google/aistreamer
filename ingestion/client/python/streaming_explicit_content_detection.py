@@ -39,6 +39,7 @@ Sample Output:
     Time: 2.116857s
         pornography: VERY_UNLIKELY
 """
+from __future__ import print_function
 
 import argparse
 
@@ -82,14 +83,14 @@ def streaming_annotate(stream_file):
     responses = client.streaming_annotate_video(
         config_request, requests, timeout=10800)
 
-    print '\nReading response.'
+    print('\nReading response.')
     # Retrieve results from the response generator.
     for response in responses:
       for frame in response.annotation_results.explicit_annotation.frames:
         likelihood = enums.Likelihood(frame.pornography_likelihood)
         frame_time = frame.time_offset.seconds + frame.time_offset.nanos / 1e9
-        print 'Time: {}s'.format(frame_time)
-        print '\tpornography: {}'.format(likelihood.name)
+        print('Time: {}s'.format(frame_time))
+        print('\tpornography: {}'.format(likelihood.name))
 
 
 if __name__ == '__main__':

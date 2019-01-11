@@ -38,6 +38,7 @@ Sample Output:
     ...
 
 """
+from __future__ import print_function
 
 import argparse
 
@@ -84,7 +85,7 @@ def streaming_annotate(stream_file):
     responses = client.streaming_annotate_video(
         config_request, requests, timeout=10800)
 
-    print '\nReading response.'
+    print('\nReading response.')
     # Retrieve results from the response generator.
     for response in responses:
       for annotation in response.annotation_results.label_annotations:
@@ -94,8 +95,8 @@ def streaming_annotate(stream_file):
         time_offset = annotation.frames[0].time_offset.seconds + \
                       annotation.frames[0].time_offset.nanos / 1e9
         confidence = annotation.frames[0].confidence
-        print '{}s: {}\t ({})'.format(
-            time_offset, description.encode('utf-8').strip(), confidence)
+        print('{}s: {}\t ({})'.format(
+            time_offset, description.encode('utf-8').strip(), confidence))
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(

@@ -37,6 +37,7 @@ Sample Output:
 After processing, annotation results will be available under the provided gcs
 bucket.
 """
+from __future__ import print_function
 
 import argparse
 
@@ -88,10 +89,10 @@ def streaming_annotate(stream_file, output_uri):
     responses = client.streaming_annotate_video(
         config_request, requests, timeout=10800)
 
-    print '\nReading response.'
+    print('\nReading response.')
     # Retrieve results from the response generator.
     for response in responses:
-      print 'Storage uri: {}'.format(response.annotation_results_uri)
+      print('Storage uri: {}'.format(response.annotation_results_uri))
 
 
 if __name__ == '__main__':

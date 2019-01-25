@@ -43,6 +43,7 @@ Sample Output:
             right : 0.218115285039
             bottom: 0.979368686676
 """
+from __future__ import print_function
 
 import argparse
 
@@ -86,7 +87,7 @@ def streaming_annotate(stream_file):
   responses = client.streaming_annotate_video(
       config_request, requests, timeout=10800)
 
-  print '\nReading response.'
+  print('\nReading response.')
   # Retrieve results from the response generator.
   for response in responses:
     object_annotations = response.annotation_results.object_annotations
@@ -98,12 +99,12 @@ def streaming_annotate(stream_file):
         confidence = annotation.confidence
         track_id = annotation.track_id
 
-        print 'Entity description: {}'.format(description)
-        print 'Track Id: {}'.format(track_id)
+        print('Entity description: {}'.format(description))
+        print('Track Id: {}'.format(track_id))
         if annotation.entity.entity_id:
-          print 'Entity id: {}'.format(annotation.entity.entity_id)
+          print('Entity id: {}'.format(annotation.entity.entity_id))
 
-        print 'Confidence: {}'.format(confidence)
+        print('Confidence: {}'.format(confidence))
 
         # In streaming mode, len(annotation.frames) is always 1, and the frames
         # in the same response share the same time_offset.
@@ -111,12 +112,12 @@ def streaming_annotate(stream_file):
         box = frame.normalized_bounding_box
         print('Time: {}s'.format(
             frame.time_offset.seconds + frame.time_offset.nanos / 1e9))
-        print 'Bounding box position:'
-        print '\tleft  : {}'.format(box.left)
-        print '\ttop   : {}'.format(box.top)
-        print '\tright : {}'.format(box.right)
-        print '\tbottom: {}'.format(box.bottom)
-        print '\n'
+        print('Bounding box position:')
+        print('\tleft  : {}'.format(box.left))
+        print('\ttop   : {}'.format(box.top))
+        print('\tright : {}'.format(box.right))
+        print('\tbottom: {}'.format(box.bottom))
+        print('\n')
 
 
 if __name__ == '__main__':

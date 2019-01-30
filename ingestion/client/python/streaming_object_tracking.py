@@ -75,49 +75,49 @@ def streaming_annotate(stream_file):
       types.StreamingAnnotateVideoRequest(input_content=chunk)
       for chunk in stream(video_file, chunk_size))
 
-  # Set streaming config.
-  config = types.StreamingVideoConfig(
-      feature=enums.StreamingFeature.STREAMING_OBJECT_TRACKING)
-  config_request = types.StreamingAnnotateVideoRequest(video_config=config)
-  # streaming_annotate_video returns a generator.
-  # timeout argument specifies the maximum allowable time duration between
-  # the time that the last packet is sent to Google video intelligence API
-  # and the time that an annotation result is returned from the API.
-  # timeout argument is represented in number of seconds.
-  responses = client.streaming_annotate_video(
-      config_request, requests, timeout=10800)
+    # Set streaming config.
+    config = types.StreamingVideoConfig(
+        feature=enums.StreamingFeature.STREAMING_OBJECT_TRACKING)
+    config_request = types.StreamingAnnotateVideoRequest(video_config=config)
+    # streaming_annotate_video returns a generator.
+    # timeout argument specifies the maximum allowable time duration between
+    # the time that the last packet is sent to Google video intelligence API
+    # and the time that an annotation result is returned from the API.
+    # timeout argument is represented in number of seconds.
+    responses = client.streaming_annotate_video(
+        config_request, requests, timeout=10800)
 
-  print('\nReading response.')
-  # Retrieve results from the response generator.
-  for response in responses:
-    object_annotations = response.annotation_results.object_annotations
+    print('\nReading response.')
+    # Retrieve results from the response generator.
+    for response in responses:
+      object_annotations = response.annotation_results.object_annotations
 
-    # When object_annotations is empty, no object is found.
-    if object_annotations:
-      for annotation in object_annotations:
-        description = annotation.entity.description
-        confidence = annotation.confidence
-        track_id = annotation.track_id
+      # When object_annotations is empty, no object is found.
+      if object_annotations:
+        for annotation in object_annotations:
+          description = annotation.entity.description
+          confidence = annotation.confidence
+          track_id = annotation.track_id
 
-        print('Entity description: {}'.format(description))
-        print('Track Id: {}'.format(track_id))
-        if annotation.entity.entity_id:
-          print('Entity id: {}'.format(annotation.entity.entity_id))
+          print('Entity description: {}'.format(description))
+          print('Track Id: {}'.format(track_id))
+          if annotation.entity.entity_id:
+            print('Entity id: {}'.format(annotation.entity.entity_id))
 
-        print('Confidence: {}'.format(confidence))
+          print('Confidence: {}'.format(confidence))
 
-        # In streaming mode, len(annotation.frames) is always 1, and the frames
-        # in the same response share the same time_offset.
-        frame = annotation.frames[0]
-        box = frame.normalized_bounding_box
-        print('Time: {}s'.format(
-            frame.time_offset.seconds + frame.time_offset.nanos / 1e9))
-        print('Bounding box position:')
-        print('\tleft  : {}'.format(box.left))
-        print('\ttop   : {}'.format(box.top))
-        print('\tright : {}'.format(box.right))
-        print('\tbottom: {}'.format(box.bottom))
-        print('\n')
+          # In streaming mode, len(annotation.frames) is always 1, and the frames
+          # in the same response share the same time_offset.
+          frame = annotation.frames[0]
+          box = frame.normalized_bounding_box
+          print('Time: {}s'.format(
+              frame.time_offset.seconds + frame.time_offset.nanos / 1e9))
+          print('Bounding box position:')
+          print('\tleft  : {}'.format(box.left))
+          print('\ttop   : {}'.format(box.top))
+          print('\tright : {}'.format(box.right))
+          print('\tbottom: {}'.format(box.bottom))
+          print('\n')
 
 
 if __name__ == '__main__':

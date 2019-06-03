@@ -1,22 +1,20 @@
 AIStreamer - A Media Streaming/Processing Library for Google Cloud Video Intelligence
 ===================================
 
-AIStreamer is an open source media streaming and processing library used in conjunction with [Google Cloud Video Intelligence Solution](https://cloud.google.com/video-intelligence).
+AIStreamer is an open source media streaming and processing library used in conjunction with [Google Cloud Video Intelligence Solution](https://cloud.google.com/video-intelligence/docs/beta).
 
-[Google Cloud Video Intelligence Solution](https://cloud.google.com/video-intelligence) supports label detection, shot change detection, explicit content detection, object tracking and video transcription.
+[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/docs/beta) supports label detection, shot change detection, explicit content detection, and object tracking.
 
-AIStreamer library is running on premise or in the clouds. It is used for preprocessing and streaming the media content to Google Cloud Video Intelligence servers.
-
-AIStreamer is still an [Alpha feature](https://cloud.google.com/video-intelligence/alpha/docs/streaming). You must be in Google Cloud Video Intelligence Trusted Group to use this Alpha feature.
+AIStreamer library is running on premise or in the clouds. It is used for preprocessing the media content, and ingesting the media data to Google Cloud Video Intelligence servers.
 
 <table>
   <tr>
     <td><b>Homepage:</b></td>
-    <td><a href="https://cloud.google.com/video-intelligence">Google Cloud Video Intelligence (Public Features)</a></td>
+    <td><a href="https://cloud.google.com/video-intelligence/docs/beta">Google Cloud Video Intelligence (Public Features)</a></td>
   </tr>
   <tr>
     <td><b>Homepage:</b></td>
-    <td><a href="https://cloud.google.com/video-intelligence/alpha/docs/streaming">Google Cloud Video Intelligence (Alpha Features, Restricted Access)</a></td>
+    <td><a href="https://cloud.google.com/video-intelligence/alpha/docs/">Google Cloud Video Intelligence (Alpha Features, Restricted Access)</a></td>
   </tr>
 </table>
 
@@ -37,7 +35,7 @@ please refer to the documents in individual feature directories.
 
 All source code in this Github repository follows MIT license.
 
-Copyright (c) 2018 Google LLC
+Copyright (c) 2019 Google LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

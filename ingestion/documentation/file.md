@@ -1,14 +1,14 @@
 AIStreamer Ingestion - File/Data Streaming
 ===================================
 
-[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/alpha/docs/streaming) allows customers
+[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/docs/beta) allows customers
 to stream a video file to Google Streaming API server and receives analytics results in real time. It also allows customers to
 divide a video file into multiple data chunks, and stream each data chunk individually.
 
 # Supported video codecs
 
 Not all video files can be supported in Google Cloud Video Intellgence Streaming API. Please refer to
-[Google Cloud Documentation](https://cloud.google.com/video-intelligence/alpha/docs/streaming) for list of
+[Google Cloud Documentation](https://cloud.google.com/video-intelligence/docs/streaming/streaming#supported_video_codecs) for list of
 supported video codecs during file streaming.
 
 You can determine if your video file supports streaming by using a named pipe and the [FFMPEG](https://www.ffmpeg.org) tool.
@@ -38,8 +38,8 @@ $ ./streaming_object_tracking.py $FILE_NAME
 
 Here, $GOOGLE_APPLICATION_CREDENTIALS specifies where GCP credential json file is located.
 
-Make sure to set correct timeout value when initiating the gRPC connection. If you need to stream 1 hour of video,
-timeout value should be at least 3600 (unit: seconds) in the python source code.
+Make sure to set correct timeout value when initiating the gRPC connection.
+If you need to stream 1 hour of video, timeout value should be at least 3600 (unit: seconds).
 
 ```python
 # streaming_annotate_video returns a generator.
@@ -47,7 +47,7 @@ timeout value should be at least 3600 (unit: seconds) in the python source code.
 # the time that the last packet is sent to Google video intelligence API
 # and the time that an annotation result is returned from the API.
 # timeout argument is represented in number of seconds.
-responses = client.streaming_annotate_video(config_request, requests, timeout=3600)
+responses = client.streaming_annotate_video(requests, timeout=3600)
 ```
 
 # C++ client library
@@ -62,8 +62,7 @@ $ export GOOGLE_APPLICATION_CREDENTIALS=/path_to_credential/credential_json
 $ export CONFIG=/path_to_config/config_json
 $ export FILE_NAME=/path_to_file/file_name
 $ export TIMEOUT=3600
-$ ./streaming_client_main --alsologtostderr --endpoint "dns:///alpha-videointelligence.googleapis.com" \
-      --video_path=$FILE_NAME --config=$CONFIG --timeout=$TIMEOUT
+$ ./streaming_client_main --video_path=$FILE_NAME --config=$CONFIG --timeout=$TIMEOUT
 ```
 
 Here, $GOOGLE_APPLICATION_CREDENTIALS specifies where GCP credential json file is located.
@@ -73,12 +72,11 @@ Example config files $CONFIG for each feature can be found [here](../client/cpp/
 Make sure to set correct timeout flag in the command line. If you need to stream 1 hour of video,
 timeout value should be at least 3600 (unit: seconds).
 
-# Other languages
+# Other languages (Java, NodeJS)
 
-Support for other languages will be available by end of Q1/2019. Please contact us if you need immediate support before that time frame.
+Support for Java and NodeJS is available in [Google Cloud Documentation](https://cloud.google.com/video-intelligence/docs/beta-libraries).
 
 # Build instruction
-
 We provide a Docker example, and build/deployment dependency rules have been properly configured in [env/Dockerfile](../env/Dockerfile).
 
 Please refer to [Docker documentation](../documentation/docker.md) for detailed instructions.

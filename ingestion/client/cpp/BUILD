@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Google LLC
+# Copyright (c) 2019 Google LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -50,8 +50,8 @@ cc_library(
 cc_library(
     name = "io_reader",
     deps = [
-        "file_reader",
-        "pipe_reader",
+        ":file_reader",
+        ":pipe_reader",
         "//external:glog",
     ],
 )
@@ -59,9 +59,28 @@ cc_library(
 cc_library(
     name = "io_writer",
     deps = [
-        "file_writer",
-        "proto_writer",
+        ":file_writer",
+        ":proto_writer",
         "//external:glog",
+    ],
+)
+
+cc_library(
+    name = "media_player",
+    srcs = [
+        "media_player.cc",
+    ],
+    hdrs = [
+        "media_player.h",
+    ],
+    deps = [
+        ":sync_queue",
+        ":thirdparty_ffmpeg",
+        ":thirdparty_sdl2",
+        ":visualizer_util",
+        "//external:glog",
+        "//proto:video_intelligence_streaming_cc_proto",
+        "//proto:visualizer_cc_proto",
     ],
 )
 
@@ -146,6 +165,7 @@ cc_library(
     hdrs = [
         "file_reader.h",
         "file_writer.h",
+        "media_player.h",
         "pipe_reader.h",
         "proto_writer.h",
         "streaming_client.h",
@@ -153,10 +173,98 @@ cc_library(
     deps = [
         ":io_reader",
         ":io_writer",
+        ":media_player",
         ":proto_processor",
         "//external:gflags",
         "//external:glog",
         "//proto:video_intelligence_streaming_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "sync_queue",
+    hdrs = [
+        "sync_queue.h",
+    ],
+)
+
+cc_library(
+    name = "thirdparty_ffmpeg",
+    hdrs = glob(["include/x86_64-linux-gnu/*.h"]),
+    includes = [
+        "include/x86_64-linux-gpu",
+    ],
+    linkopts = [
+        "-lavformat",
+        "-lavcodec",
+        "-lswresample",
+        "-lswscale",
+        "-lavutil",
+        "-lx264",
+        "-lx265",
+    ],
+)
+
+cc_library(
+    name = "thirdparty_sdl2",
+    hdrs = glob(["include/SDL2/*.h"]),
+    defines = [
+        "_REENTRANT",
+    ],
+    includes = [
+        "include/SDL2",
+    ],
+    linkopts = [
+        "-lSDL2",
+        "-lSDL2_ttf",
+    ],
+)
+
+cc_library(
+    name = "visualizer_util",
+    srcs = [
+        "visualizer_util.cc",
+    ],
+    hdrs = [
+        "visualizer_util.h",
+    ],
+    deps = [
+        ":thirdparty_sdl2",
+        "//external:glog",
+        "//proto:video_intelligence_streaming_cc_proto",
+    ],
+)
+
+cc_test(
+    name = "sync_queue_test",
+    size = "small",
+    srcs = [
+        "sync_queue_test.cc",
+    ],
+    tags = ["exclusive"],
+    deps = [
+        ":sync_queue",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_binary(
+    name = "libstreamingclient.so",
+    linkshared = True,
+    linkstatic = True,
+    deps = [
+        ":streaming_client",
+    ],
+)
+
+cc_binary(
+    name = "media_player_main",
+    srcs = [
+        "media_player_main.cc",
+    ],
+    deps = [
+        ":media_player",
+        "//external:gflags",
     ],
 )
 
@@ -167,7 +275,5 @@ cc_binary(
     ],
     deps = [
         ":streaming_client",
-        "//external:gflags",
-        "//external:glog",
     ],
 )

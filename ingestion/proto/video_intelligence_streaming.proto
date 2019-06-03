@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Google LLC
+// Copyright (c) 2019 Google LLC
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -22,7 +22,7 @@ syntax = "proto3";
 import "proto/status.proto";
 import "google/protobuf/duration.proto";
 
-package google.cloud.videointelligence.v1;
+package google.cloud.videointelligence.v1p3beta1;
 
 // Bucketized representation of likelihood.
 enum Likelihood {

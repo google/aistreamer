@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Google LLC
+# Copyright (c) 2019 Google LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -54,6 +54,8 @@ RUN apt-get update && apt-get install -y \
     liblzma-dev \
     libopenmpi-dev \
     libsdl2-dev \
+    libsdl2-ttf-dev \
+    libsdl2-2.0 \
     libsnappy-dev \
     libssl-dev \
     libtool \
@@ -67,6 +69,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     python-dev \
     python-setuptools \
+    software-properties-common \
     unzip \
     wget \
     vim \
@@ -76,11 +79,10 @@ RUN apt-get update && apt-get install -y \
 
 RUN easy_install pip
 
-RUN apt-get update & apt-get install -y software-properties-common
 RUN add-apt-repository ppa:jonathonf/ffmpeg-3 -y
-
 RUN apt-get update && apt-get install -y \
     libav-tools \
+    libavdevice-dev \
     libx264-dev \
     libx265-dev \
     libnuma-dev \
@@ -130,13 +132,14 @@ RUN cd /var/local && \
     ./bazel-${BAZEL_RELEASE_TAG}-installer-linux-x86_64.sh --prefix=/usr
 
 #install Google Video Intelligence Streaming API Python Libraries
-RUN pip install https://storage.googleapis.com/api-client-staging/videointelligence-python-q4alpha-dec2018.tar.gz
+RUN pip install --upgrade google-cloud-videointelligence
+RUN pip install --user psutil
 
 #set up environment for Google Video Intelligence Streaming API
 ENV SRC_DIR /googlesrc
 ENV BIN_DIR /google
 
-#copy all aistreamer directory to Docker
+#copy aistreamer directory to Docker
 RUN mkdir -p $SRC_DIR
 COPY BUILD *.BUILD *.md *.py LICENSE WORKSPACE $SRC_DIR/
 COPY client $SRC_DIR/client
@@ -151,10 +154,14 @@ RUN mkdir -p $BIN_DIR
 RUN mkdir -p $BIN_DIR/cpp
 RUN mkdir -p $BIN_DIR/python
 RUN cp $SRC_DIR/bazel-bin/client/cpp/streaming_client_main $BIN_DIR/cpp
+RUN cp $SRC_DIR/client/cpp/config/* $BIN_DIR/cpp
 RUN cp $SRC_DIR/client/python/*.py $BIN_DIR/python
 RUN chmod +x $BIN_DIR/python/*.py
 
 #clean up the build artifacts and source directory.
 RUN cd $SRC_DIR  && bazel clean --expunge
+
+#set work directory
+WORKDIR $BIN_DIR
 
 CMD ["/bin/bash"]

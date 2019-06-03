@@ -1,7 +1,7 @@
 AIStreamer Ingestion Library
 ===================================
 
-[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/alpha/docs/streaming) enables real-time streaming analysis for live media and archived data. Supported features include:
+[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/docs/beta) enables real-time streaming analysis for live media and archived data. Supported features include:
 
 1. Live Label Detection
 
@@ -199,9 +199,3 @@ service StreamingVideoIntelligenceService {
 AIStreamer ingestion client must use two threads (sender thread and receiver thread) to support bidirectional streaming gRPC interface.
 To see Python and C++ examples related to AIStreamer, go to [client](client) directory.
 To understand the basic gRPC concept and how it works, go to [gRPC documentation](https://grpc.io/docs/guides/concepts.html#bidirectional-streaming-rpc).
-
-# Notes
-
-1. Users can take advantage of Video API for free during the Alpha phase, however you will still incur charges for your GCS usage (not applicable for streaming API).
-
-2. This is an Alpha release of Google Cloud Video Intelligence. As a result, it might be changed in backward-incompatible ways and it is not recommended for production use. It is not subject to any SLA or deprecation policy.

@@ -1,7 +1,7 @@
 AIStreamer Ingestion - Live Streaming
 ===================================
 
-[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/alpha/docs/streaming) supports
+[Google Cloud Video Intelligence Streaming API](https://cloud.google.com/video-intelligence/docs/beta) supports
 standard live streaming protocols (for example, RTSP, RTMP and HLS). AIStreamer ingestion pipeline is behaved as a streaming proxy,
 converting from live streaming procotols to bidirectional streaming gRPC connection.
 
@@ -29,8 +29,7 @@ $ export GOOGLE_APPLICATION_CREDENTIALS=/path_to_credential/credential_json
 $ export CONFIG=/path_to_config/config_json
 $ export PIPE_NAME=/path_to_pipe/pipe_name
 $ export TIMEOUT=3600
-$ ./streaming_client_main --alsologtostderr --endpoint "dns:///alpha-videointelligence.googleapis.com" \
-      --video_path=$PIPE_NAME --use_pipe=true --config=$CONFIG --timeout=$TIMEOUT
+$ ./streaming_client_main --video_path=$PIPE_NAME --use_pipe=true --config=$CONFIG --timeout=$TIMEOUT
 ```
 
 Here, $GOOGLE_APPLICATION_CREDENTIALS specifies where GCP credential json file is located.
@@ -98,4 +97,4 @@ message will be rejected, and gRPC streaming connection will be stopped immediat
 
 # On-going effort
 
-There is an on-going effort to combine gStreamer and AIStreamer ingestion proxy into a single binary. Expected delivery date will be Q1/2019.
+There is an on-going effort to combine gStreamer and AIStreamer ingestion proxy into a single binary.

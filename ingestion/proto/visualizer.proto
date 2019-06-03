@@ -18,49 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef API_VIDEO_CLIENT_CPP_PROTO_WRITER_H_
-#define API_VIDEO_CLIENT_CPP_PROTO_WRITER_H_
+syntax = "proto3";
 
-#include <google/protobuf/message_lite.h>
+package api.video;
 
-#include <fstream>
-#include <memory>
+message LabelTimestamp {
+  // Timestamp (in seconds).
+  int64 timestamp_sec = 1;
 
-#include "client/cpp/io_writer.h"
-#include "glog/logging.h"
-
-namespace api {
-namespace video {
-
-class ProtoWriter : public IOWriter {
- public:
-  explicit ProtoWriter(const std::string& path);
-  virtual ~ProtoWriter() = default;
-
-  // Disallows copy and assign.
-  ProtoWriter(const ProtoWriter&) = delete;
-  ProtoWriter& operator=(const ProtoWriter&) = delete;
-
-  // Opens a proto file.
-  bool Open();
-
-  // Writes serialized proto bytes to the proto file.
-  bool WriteBytes(size_t bytes_written, char* data);
-
-  // Writes proto message to the proto file.
-  bool WriteProto(const google::protobuf::MessageLite& message);
-
-  // Closes a file.
-  void Close();
-
- private:
-  // File name.
-  std::string file_name_;
-  // File stream.
-  std::unique_ptr<std::ofstream> file_fd_;
-};
-
-}  // namespace video
-}  // namespace api
-
-#endif  //  API_VIDEO_CLIENT_CPP_PROTO_WRITER_H_
+  // String of labels.
+  string labels = 2;
+}

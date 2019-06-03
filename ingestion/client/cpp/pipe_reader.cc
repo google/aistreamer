@@ -1,21 +1,22 @@
-// Copyright (c) 2018 Google LLC
+// Copyright (c) 2019 Google LLC
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy of
-// this software and associated documentation files (the "Software"), to deal in
-// the Software without restriction, including without limitation the rights to
-// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-// the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include "client/cpp/pipe_reader.h"
 
@@ -23,6 +24,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
+
 #include <algorithm>
 
 #include "glog/logging.h"
@@ -36,8 +38,7 @@ constexpr int kPipeSize = 65536;
 constexpr int kPollingIntervalMs = 1000;
 
 PipeReader::PipeReader(const std::string& path)
-    : IOReader(path), pipe_name_(path), pipe_fd_(-1) {
-}
+    : IOReader(path), pipe_name_(path), pipe_fd_(-1) {}
 
 bool PipeReader::Open() {
   CHECK(pipe_fd_ == -1);
@@ -56,14 +57,16 @@ size_t PipeReader::ReadBytes(size_t max_bytes_read, char* data) {
   memset(data, 0, max_bytes_read);
   while (status_) {
     std::lock_guard<std::mutex> lck(mtx_);
-    size_t bytes_read = (max_bytes_read > data_.size()) ? data_.size() : max_bytes_read;
+    size_t bytes_read =
+        (max_bytes_read > data_.size()) ? data_.size() : max_bytes_read;
     if (bytes_read > 0) {
       memcpy(data, data_.c_str(), bytes_read);
       data_.erase(0, bytes_read);
       return bytes_read;
     }
   }
-  size_t bytes_read = (max_bytes_read > data_.size()) ? data_.size() : max_bytes_read;
+  size_t bytes_read =
+      (max_bytes_read > data_.size()) ? data_.size() : max_bytes_read;
   memcpy(data, data_.c_str(), bytes_read);
   data_.erase(0, bytes_read);
   return bytes_read;
@@ -113,7 +116,8 @@ void PipeReader::ReadPipe() {
         } while (true);
       }
       if ((fds.revents & (POLLHUP | POLLERR)) != 0) {
-        LOG(INFO) << "Pipe " << pipe_name_ << " has been closed by remote side.";
+        LOG(INFO) << "Pipe " << pipe_name_
+                  << " has been closed by remote side.";
         status_ = false;
         return;
       }

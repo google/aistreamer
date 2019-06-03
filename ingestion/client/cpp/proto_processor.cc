@@ -1,21 +1,22 @@
-// Copyright (c) 2018 Google LLC
+// Copyright (c) 2019 Google LLC
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy of
-// this software and associated documentation files (the "Software"), to deal in
-// the Software without restriction, including without limitation the rights to
-// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-// the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include "client/cpp/proto_processor.h"
 
@@ -25,14 +26,16 @@ namespace api {
 namespace video {
 
 namespace {
-using google::cloud::videointelligence::v1::Likelihood;
-using google::cloud::videointelligence::v1::
+using ::google::cloud::videointelligence::v1p3beta1::Likelihood;
+using ::google::cloud::videointelligence::v1p3beta1::
     STREAMING_EXPLICIT_CONTENT_DETECTION;
-using google::cloud::videointelligence::v1::STREAMING_LABEL_DETECTION;
-using google::cloud::videointelligence::v1::STREAMING_OBJECT_TRACKING;
-using google::cloud::videointelligence::v1::STREAMING_SHOT_CHANGE_DETECTION;
-using google::cloud::videointelligence::v1::StreamingFeature;
-using google::cloud::videointelligence::v1::StreamingVideoAnnotationResults;
+using ::google::cloud::videointelligence::v1p3beta1::STREAMING_LABEL_DETECTION;
+using ::google::cloud::videointelligence::v1p3beta1::STREAMING_OBJECT_TRACKING;
+using ::google::cloud::videointelligence::v1p3beta1::
+    STREAMING_SHOT_CHANGE_DETECTION;
+using ::google::cloud::videointelligence::v1p3beta1::StreamingFeature;
+using ::google::cloud::videointelligence::v1p3beta1::
+    StreamingVideoAnnotationResults;
 }  // namespace
 
 void ProtoProcessor::Process(const StreamingFeature& feature,
@@ -75,8 +78,8 @@ void ProtoProcessor::ProcessLabelDetection(
     double time_offset = annotation.frames(0).time_offset().seconds() +
                          annotation.frames(0).time_offset().nanos() / 1e9;
     float confidence = annotation.frames(0).confidence();
-    LOG(INFO) << time_offset << "s:\t" << description
-        << "\t(" << confidence << ")";
+    LOG(INFO) << time_offset << "s:\t" << description << "\t(" << confidence
+              << ")";
   }
 }
 
@@ -112,8 +115,8 @@ void ProtoProcessor::ProcessObjectTracking(
       LOG(INFO) << "Confidence: " << confidence;
       LOG(INFO) << "Time: " << time_offset << "s";
       LOG(INFO) << "Bounding box position: "
-          << " left : " << left << " top : " << top
-          << " right : " << right << " bottom : " << bottom;
+                << " left : " << left << " top : " << top
+                << " right : " << right << " bottom : " << bottom;
     }
   }
 }

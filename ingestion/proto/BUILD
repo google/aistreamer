@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Google LLC
+# Copyright (c) 2019 Google LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -52,6 +52,22 @@ cc_proto_library(
     ],
     protos = [
         "status.proto",
+    ],
+    deps = [
+        "@com_google_protobuf//:cc_wkt_protos",
+    ],
+)
+
+cc_proto_library(
+    name = "visualizer_cc_proto",
+    imports = [
+        "external/com_google_protobuf/src/",
+    ],
+    inputs = [
+        "@com_google_protobuf//:well_known_protos",
+    ],
+    protos = [
+        "visualizer.proto",
     ],
     deps = [
         "@com_google_protobuf//:cc_wkt_protos",

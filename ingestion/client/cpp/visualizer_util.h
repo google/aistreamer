@@ -18,49 +18,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef API_VIDEO_CLIENT_CPP_PROTO_WRITER_H_
-#define API_VIDEO_CLIENT_CPP_PROTO_WRITER_H_
+#ifndef API_VIDEO_CLIENT_CPP_VISUALIZER_UTIL_H_
+#define API_VIDEO_CLIENT_CPP_VISUALIZER_UTIL_H_
 
-#include <google/protobuf/message_lite.h>
-
-#include <fstream>
-#include <memory>
-
-#include "client/cpp/io_writer.h"
 #include "glog/logging.h"
+#include "proto/video_intelligence_streaming.pb.h"
+
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_render.h"
+#include "SDL2/SDL_syswm.h"
+#include "SDL2/SDL_thread.h"
+#include "SDL2/SDL_ttf.h"
 
 namespace api {
 namespace video {
 
-class ProtoWriter : public IOWriter {
- public:
-  explicit ProtoWriter(const std::string& path);
-  virtual ~ProtoWriter() = default;
+// Utility function to update contents (bounding box, text, etc) that will be
+// rendered on a video. Rendering contents will be extracted from `resp` and
+// `sdl_renderer` will be updated.
+void UpdateSDLRendererContent(
+    const google::cloud::videointelligence::v1p3beta1::
+        StreamingAnnotateVideoResponse& resp,
+    const int video_width, const int video_height, TTF_Font* font_ptr,
+    SDL_Renderer* sdl_renderer);
 
-  // Disallows copy and assign.
-  ProtoWriter(const ProtoWriter&) = delete;
-  ProtoWriter& operator=(const ProtoWriter&) = delete;
+// Gets timestamp of an annotation response.
+uint32_t GetAnnotationResponseTimestamp(
+    const google::cloud::videointelligence::v1p3beta1::
+        StreamingAnnotateVideoResponse& resp);
 
-  // Opens a proto file.
-  bool Open();
-
-  // Writes serialized proto bytes to the proto file.
-  bool WriteBytes(size_t bytes_written, char* data);
-
-  // Writes proto message to the proto file.
-  bool WriteProto(const google::protobuf::MessageLite& message);
-
-  // Closes a file.
-  void Close();
-
- private:
-  // File name.
-  std::string file_name_;
-  // File stream.
-  std::unique_ptr<std::ofstream> file_fd_;
-};
+// Gets SDL_Renderer clear threshold depedning on feature type.
+uint32_t GetRendererClearThreshold(
+    const google::cloud::videointelligence::v1p3beta1::
+        StreamingAnnotateVideoResponse& resp);
 
 }  // namespace video
 }  // namespace api
 
-#endif  //  API_VIDEO_CLIENT_CPP_PROTO_WRITER_H_
+#endif  //  API_VIDEO_CLIENT_CPP_VISUALIZER_UTIL_H_

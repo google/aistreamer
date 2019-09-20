@@ -28,6 +28,10 @@ namespace video {
 namespace {
 using ::google::cloud::videointelligence::v1p3beta1::Likelihood;
 using ::google::cloud::videointelligence::v1p3beta1::
+    STREAMING_AUTOML_CLASSIFICATION;
+using ::google::cloud::videointelligence::v1p3beta1::
+    STREAMING_AUTOML_OBJECT_TRACKING;
+using ::google::cloud::videointelligence::v1p3beta1::
     STREAMING_EXPLICIT_CONTENT_DETECTION;
 using ::google::cloud::videointelligence::v1p3beta1::STREAMING_LABEL_DETECTION;
 using ::google::cloud::videointelligence::v1p3beta1::STREAMING_OBJECT_TRACKING;
@@ -41,6 +45,7 @@ using ::google::cloud::videointelligence::v1p3beta1::
 void ProtoProcessor::Process(const StreamingFeature& feature,
                              const StreamingVideoAnnotationResults& res) {
   switch (feature) {
+    case STREAMING_AUTOML_CLASSIFICATION:
     case STREAMING_LABEL_DETECTION:
       ProcessLabelDetection(res);
       break;
@@ -50,6 +55,7 @@ void ProtoProcessor::Process(const StreamingFeature& feature,
     case STREAMING_EXPLICIT_CONTENT_DETECTION:
       ProcessExplicitContentDetection(res);
       break;
+    case STREAMING_AUTOML_OBJECT_TRACKING:
     case STREAMING_OBJECT_TRACKING:
       ProcessObjectTracking(res);
       break;

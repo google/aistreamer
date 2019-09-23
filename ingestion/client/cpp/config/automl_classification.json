@@ -1,0 +1,8 @@
+{
+	"video_config": {
+		"feature": "STREAMING_AUTOML_CLASSIFICATION",
+		"automl_classification_config": {
+			"model_name": "abc"
+		}
+	}
+}

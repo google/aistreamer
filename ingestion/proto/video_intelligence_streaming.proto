@@ -19,10 +19,10 @@
 
 syntax = "proto3";
 
-import "proto/status.proto";
-import "google/protobuf/duration.proto";
-
 package google.cloud.videointelligence.v1p3beta1;
+
+import "google/protobuf/duration.proto";
+import "proto/status.proto";
 
 // Bucketized representation of likelihood.
 enum Likelihood {
@@ -52,6 +52,10 @@ enum StreamingFeature {
   STREAMING_EXPLICIT_CONTENT_DETECTION = 3;
   // Object detection and tracking.
   STREAMING_OBJECT_TRACKING = 4;
+  // Video classification based on AutoML model.
+  STREAMING_AUTOML_CLASSIFICATION = 21;
+  // Object detection and tracking based on AutoML model.
+  STREAMING_AUTOML_OBJECT_TRACKING = 22;
 }
 
 // Detected entity from video analysis.
@@ -103,7 +107,6 @@ message LabelAnnotation {
   // All video frames where a label was detected.
   repeated LabelFrame frames = 4;
 }
-
 
 // Video frame level annotation results for label detection.
 message LabelFrame {
@@ -223,6 +226,20 @@ message StreamingExplicitContentDetectionConfig {
   // No customized config support.
 }
 
+// Config for STREAMING_AUTOML_CLASSIFICATION.
+message StreamingAutomlClassificationConfig {
+  // Resource name of AutoML model.
+  // Format: `projects/{project_id}/locations/{location_id}/models/{model_id}`
+  string model_name = 1;
+}
+
+// Config for STREAMING_AUTOML_OBJECT_TRACKING.
+message StreamingAutomlObjectTrackingConfig {
+  // Resource name of AutoML model.
+  // Format: `projects/{project_id}/locations/{location_id}/models/{model_id}`
+  string model_name = 1;
+}
+
 // Config for LABEL_DETECTION in streaming mode.
 message StreamingLabelDetectionConfig {
   // Whether the video has been captured from a stationary (i.e. non-moving)
@@ -291,10 +308,16 @@ message StreamingVideoConfig {
 
     // Config for STREAMING_EXPLICIT_CONTENT_DETECTION.
     StreamingExplicitContentDetectionConfig explicit_content_detection_config =
-      4;
+        4;
 
     // Config for STREAMING_OBJECT_TRACKING.
     StreamingObjectTrackingConfig object_tracking_config = 5;
+
+    // Config for STREAMING_AUTOML_CLASSIFICATION.
+    StreamingAutomlClassificationConfig automl_classification_config = 21;
+
+    // Config for STREAMING_AUTOML_OBJECT_TRACKING.
+    StreamingAutomlObjectTrackingConfig automl_object_tracking_config = 22;
   }
 
   // Streaming storage option. By default: storage is disabled.
@@ -311,12 +334,11 @@ message VideoSegment {
   google.protobuf.Duration end_time_offset = 2;
 }
 
-
 // Service that implements streaming Google Cloud Video Intelligence API.
 service StreamingVideoIntelligenceService {
   // Performs video annotation with bidirectional streaming: emitting results
   // while sending video/audio bytes.
   // This method is only available via the gRPC API (not REST).
   rpc StreamingAnnotateVideo(stream StreamingAnnotateVideoRequest)
-    returns (stream StreamingAnnotateVideoResponse);
+      returns (stream StreamingAnnotateVideoResponse);
 }

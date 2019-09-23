@@ -1,0 +1,8 @@
+{
+	"video_config": {
+		"feature": "STREAMING_AUTOML_OBJECT_TRACKING",
+		"automl_object_tracking_config": {
+			"model_name": "abc"
+		}
+	}
+}

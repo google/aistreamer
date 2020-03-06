@@ -26,7 +26,7 @@ LABEL description="Streaming API build environment."
 
 RUN apt-get update && apt-get upgrade -y
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     autoconf \
     autoconf-archive \
@@ -80,7 +80,7 @@ RUN apt-get update && apt-get install -y \
 RUN easy_install pip
 
 RUN add-apt-repository ppa:jonathonf/ffmpeg-3 -y
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libav-tools \
     libavdevice-dev \
     libx264-dev \
@@ -93,7 +93,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && apt-get clean
 
-RUN apt-get install -y \
+RUN apt-get install -y --no-install-recommends \
     libgstreamer1.0-0 \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \

@@ -79,7 +79,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN easy_install pip
 
-RUN add-apt-repository ppa:jonathonf/ffmpeg-3 -y
+RUN add-apt-repository ppa:jonathonf/ffmpeg-4 -y
 RUN apt-get update && apt-get install -y \
     libav-tools \
     libavdevice-dev \

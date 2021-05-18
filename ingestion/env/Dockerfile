@@ -77,7 +77,8 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && apt-get clean
 
-RUN easy_install pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python get-pip.py
 
 RUN add-apt-repository ppa:jonathonf/ffmpeg-4 -y
 RUN apt-get update && apt-get install -y \
